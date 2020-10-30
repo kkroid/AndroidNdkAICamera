@@ -89,15 +89,13 @@ public:
             detectorAgregator = new DetectorAgregator(mainDetector, trackingDetector);
 //            if (faceSize > 0)
 //            {
-            mainDetector->setMinObjectSize(Size(40, 40));
-            trackingDetector->setMinObjectSize(Size(40, 40));
+            mainDetector->setMinObjectSize(Size(20, 20));
+            trackingDetector->setMinObjectSize(Size(20, 20));
 //            }
             detectorAgregator->tracker->run();
-        }
-        catch (const cv::Exception &e) {
+        } catch (const cv::Exception &e) {
             LOGD("nativeCreateObject caught cv::Exception: %s", e.what());
-        }
-        catch (...) {
+        } catch (...) {
             LOGD("nativeCreateObject caught unknown exception");
         }
     }
@@ -108,8 +106,7 @@ public:
             delete detectorAgregator;
         } catch (const cv::Exception &e) {
             LOGD("nativeestroyObject caught cv::Exception: %s", e.what());
-        }
-        catch (...) {
+        } catch (...) {
             LOGD("nativeDestroyObject caught unknown exception");
         }
     }

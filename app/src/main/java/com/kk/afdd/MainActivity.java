@@ -13,6 +13,7 @@ import com.tbruyelle.rxpermissions3.RxPermissions;
 import java.io.File;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
 import timber.log.Timber;
 
 public class MainActivity extends BaseActivity implements TextureView.SurfaceTextureListener {
@@ -56,21 +57,23 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
         rxPermissions.request(Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE).subscribe(granted -> {
             if (granted) {
-                RxRequestWrapper.with(Observable.create(emitter -> {
+                RxRequestWrapper.with(Observable.create((ObservableOnSubscribe<BaseResponse<String>>) emitter -> {
                     File moduleFolder = new File(MainActivity.this.getFilesDir(), "modules");
                     if (!moduleFolder.exists()) {
                         FileUtils.copyAssetsToDst(MainActivity.this,
                                 "",
-                                MainActivity.this.getFilesDir().getAbsolutePath());
+                                moduleFolder.getAbsolutePath());
                     }
-                    emitter.onNext(new BaseResponse<>());
+                    BaseResponse<String> response = new BaseResponse<>();
+                    response.data = moduleFolder.getAbsolutePath();
+                    emitter.onNext(response);
                     emitter.onComplete();
                 })).observeOnIoThread()
                         .observeOnMainThread()
                         .callback(response -> {
-                            String path = MainActivity.this.getFilesDir().getAbsolutePath() +
-                                    File.separator + "haarcascades" + File.separator + "haarcascade_frontalface_alt" +
-                                    ".xml";
+                            String path = response.data + File.separator +
+                                    "haarcascades" + File.separator +
+                                    "haarcascade_frontalface_alt.xml";
                             Timber.d("module path:" + path);
                             setSurface(new Surface(surface));
                             setFaceOverlay(mFaceOverlay);

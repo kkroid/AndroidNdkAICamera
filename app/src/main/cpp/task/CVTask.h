@@ -57,7 +57,6 @@ public:
         vector<Rect> rectFaces;
         cvDetector.detect(brgImg, &rectFaces);
 
-        vector<FaceInfo> faceInfoList;
         string json = "[";
         for (int i = 0, n = rectFaces.size(); i < n; i++) {
             Rect rect = rectFaces[i];
@@ -81,6 +80,8 @@ public:
         delete frame;
         UIPreview::getInstance()->onFaceDetected(json);
         LOGI("CVTask loadFaceInfo done, duration:%ld, found %d faces", end - start, rectFaces.size());
+        rectFaces.clear();
+        rectFaces.resize(0);
     }
 };
 
