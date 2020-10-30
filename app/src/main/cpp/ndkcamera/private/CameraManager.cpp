@@ -22,7 +22,7 @@ CameraManager::~CameraManager() {
  */
 void CameraManager::startPreview() {
 #if PLATFORM_ANDROID
-    cameraServer = new AndroidCameraServer(frameWidth, frameHeight, frameRotation, frameFormat, frameFps);
+    cameraServer = new AndroidCameraServer(frameWidth, frameHeight, frameRotation, frameFormat, cameraId);
     LOGI("startPreview, task size = %ld", (long) frameTaskMap.size());
     cameraServer->setPreviewCallback(this);
     cameraServer->setFrameTask(frameTaskMap);

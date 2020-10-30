@@ -39,11 +39,10 @@ public:
     void init(CameraServerConfig *configuration) {
         setFrameSize(configuration->getWidth(), configuration->getHeight());
         setFrameFormat(configuration->getFormat());
-        setFrameFps(configuration->getFps());
         setFrameRotation(configuration->getRotation());
         setFrameTasks(configuration->getFrameTasks());
+        setCameraId(configuration->getCameraId());
         frameProcessor = new FrameProcessor(&frameTaskMap);
-        refreshFps();
     }
 
     ~CameraManager();
@@ -72,11 +71,8 @@ public:
 //        cameraServer->setFrameFormat(_frameFormat);
     }
 
-    void setFrameFps(int32_t _frameFps) {
-        frameFps = _frameFps;
-        if (cameraReady) {
-            cameraServer->setFrameFps(_frameFps);
-        }
+    void setCameraId(int _cameraId) {
+        cameraId = _cameraId;
     }
 
     void setFrameTasks(const std::map<std::string, FrameTask *> &_frameTaskMap) {
@@ -89,8 +85,6 @@ public:
         LOGI("task %s added", _frameTask->name.c_str());
         if (!cameraReady) {
             startPreview();
-        } else {
-            refreshFps();
         }
     }
 
@@ -100,8 +94,6 @@ public:
         }
         if (frameTaskMap.empty()) {
             stopPreview();
-        } else {
-            refreshFps();
         }
     }
 
@@ -112,7 +104,7 @@ private:
     int32_t frameHeight = 640;
     int32_t frameRotation = 270;
     int32_t frameFormat = 0;
-    int32_t frameFps = 5;
+    int32_t cameraId = 0;
     std::map<std::string, FrameTask *> frameTaskMap;
     FrameProcessor *frameProcessor;
 
@@ -122,19 +114,6 @@ private:
     CameraManager() :
             cameraReady(false),
             cameraServer(nullptr) {
-    }
-
-    void refreshFps() {
-        int tmpFps = frameFps;
-        if (frameFps == 0) {
-            std::map<std::string, FrameTask *>::iterator taskIterator;
-            for (taskIterator = frameTaskMap.begin(); taskIterator != frameTaskMap.end(); taskIterator++) {
-                auto *frameTask = taskIterator->second;
-                tmpFps = frameTask->fps > tmpFps ? frameTask->fps : tmpFps;
-            }
-        }
-        LOGI("refreshFps to %d", tmpFps);
-        setFrameFps(tmpFps);
     }
 };
 

@@ -63,21 +63,21 @@ char *jstringToChar(JNIEnv *env, jstring jstr) {
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_kk_afdd_MainActivity_openCamera(JNIEnv *env, jobject thiz) {
+Java_com_kk_afdd_MainActivity_openCamera(JNIEnv *env, jobject thiz, jint w, jint h, jint r, jint fps, jboolean
+mirror, jstring path) {
     if (!cameraEngine) {
-        int fps = 5;
         CameraServerConfigBuilder *builder = CameraServerConfigBuilder::newBuilder();
-        builder->frameWidth(Config::previewWidth)
-                ->frameHeight(Config::previewHeight)
-                ->frameRotation(90)
-                ->setFps(fps)
+        builder->frameWidth(w)
+                ->frameHeight(h)
+                ->frameRotation(r)
+                ->setCameraId(mirror ? 0 : 1)
                 ->frameFormat(AIMAGE_FORMAT_YUV_420_888)
-//                ->addFrameTask(new UltraFaceTask(5,
+//                ->addFrameTask(new UltraFaceTask(fps,
 //                                                 Config::previewWidth,
 //                                                 Config::previewHeight,
 //                                                 2,
 //                                                 0.7f))
-                ->addFrameTask(new CVTask());
+                ->addFrameTask(new CVTask(fps, jstringToChar(env, path)));
         CameraServerConfig *config = builder->build();
         cameraEngine = CameraManager::getInstance();
         cameraEngine->init(config);

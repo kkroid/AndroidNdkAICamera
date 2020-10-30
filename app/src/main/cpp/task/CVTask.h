@@ -38,9 +38,8 @@ private:
 
 public:
 
-    CVTask() : FrameTask(move("CVTask"), 20) {
+    CVTask(int fps, std::string path) : FrameTask(move("CVTask"), fps) {
 //            std::string path = "/sdcard/lbpcascades/lbpcascade_frontalface_improved.xml";
-        std::string path = "/sdcard/haarcascades/haarcascade_frontalface_alt.xml";
         cvDetector.create(path);
     }
 

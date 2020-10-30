@@ -10,7 +10,6 @@ public:
     int32_t frameHeight = 640;
     int32_t frameRotation = 270;
     int32_t frameFormat = 0;
-    int32_t frameFps = 5;
 
     PreviewCallback *previewCallback = nullptr;
     std::map<std::string, FrameTask *> frameTaskMap;
@@ -44,13 +43,6 @@ public:
      * 设置摄像头角度
      */
     virtual void setFrameRotation(int32_t _frameRotation) = 0;
-
-//    virtual void setFrameFormat(int32_t _frameFormat) = 0;
-
-    /**
-     * 设置FPS
-     */
-    virtual void setFrameFps(int32_t _frameFps) = 0;
 
     virtual void setFrameTask(std::map<std::string, FrameTask *> _frameTaskMap) {
         frameTaskMap = _frameTaskMap;

@@ -39,12 +39,12 @@ public:
         format = _format;
     }
 
-    int32_t getFps() const {
-        return fps;
+    void setCameraId(int32_t _cameraId) {
+        cameraId = _cameraId;
     }
 
-    void setFps(int32_t _fps) {
-        fps = _fps;
+    int getCameraId() {
+        return cameraId;
     }
 
     const std::map<std::string, FrameTask *> &getFrameTasks() const {
@@ -65,7 +65,7 @@ private:
     int height = 0;
     int32_t rotation = 0;
     int32_t format = 0;
-    int32_t fps = 0;
+    int32_t cameraId = 0;
     std::map<std::string, FrameTask *> frameTaskMap;
 };
 
@@ -91,11 +91,9 @@ public:
         if (height > 0) {
             config->setHeight(height);
         }
+        config->setCameraId(cameraId);
         config->setRotation(rotation);
         config->setFormat(format);
-        if (fps > 1) {
-            config->setFps(fps);
-        }
         config->setFrameTasks(frameTaskMap);
         return config;
     }
@@ -115,8 +113,8 @@ public:
         return this;
     }
 
-    CameraServerConfigBuilder *setFps(int _fps) {
-        fps = _fps;
+    CameraServerConfigBuilder *setCameraId(int _cameraId) {
+        cameraId = _cameraId;
         return this;
     }
 
@@ -135,7 +133,7 @@ private:
     int height = 0;
     int32_t rotation = 0;
     int32_t format = 0;
-    int32_t fps = 0;
+    int32_t cameraId = 0;
     std::map<std::string, FrameTask *> frameTaskMap;
 };
 

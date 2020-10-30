@@ -85,7 +85,7 @@ public:
                         int32_t frameHeight,
                         int32_t frameRotation,
                         int32_t frameFormat,
-                        int32_t frameFps);
+                        int32_t cameraId);
 
     ~AndroidCameraServer();
 
@@ -97,13 +97,9 @@ public:
 
     void setFrameRotation(int32_t _frameRotation) override;
 
-//    void setFrameFormat(int32_t _frameFormat) override;
-
     void setUIPreviewEnable(bool enable) {
         uiPreviewEnable = enable;
     }
-
-    void setFrameFps(int32_t _frameFps) override;
 
     void onCameraStatusChanged(const char *id, bool available);
 
@@ -134,7 +130,7 @@ private:
      */
     void selectCameraId(int32_t facing);
 
-    void createSession(ANativeWindow *imageStreamWindow, int32_t imageRotation, int32_t *fpsRange);
+    void createSession(ANativeWindow *imageStreamWindow, int32_t imageRotation);
 
     /**
      * 设置int32类型参数

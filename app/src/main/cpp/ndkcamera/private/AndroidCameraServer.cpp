@@ -14,7 +14,7 @@ AndroidCameraServer::AndroidCameraServer(int32_t _frameWidth,
                                          int32_t _frameHeight,
                                          int32_t _frameRotation,
                                          int32_t _frameFormat,
-                                         int32_t _frameFps) :
+                                         int32_t _cameraId) :
         cameraMgr(nullptr),
         activeCameraId(""),
         cameraOrientation(0),
@@ -25,7 +25,6 @@ AndroidCameraServer::AndroidCameraServer(int32_t _frameWidth,
     frameHeight = _frameHeight;
     frameRotation = _frameRotation;
     frameFormat = _frameFormat;
-    frameFps = _frameFps;
     imageDataReader = nullptr;
 
     captureSession = nullptr;
@@ -35,7 +34,7 @@ AndroidCameraServer::AndroidCameraServer(int32_t _frameWidth,
     cameraMgr = ACameraManager_create();
     ASSERT(cameraMgr, "Failed to create cameraManager")
     // Pick up a front-facing camera to preview
-    selectCameraId(ACAMERA_LENS_FACING_FRONT);
+    selectCameraId(_cameraId);
     LOGI("selected camera id:%s", activeCameraId.id.c_str());
     // Create back facing camera device
     CALL_MGR(openCamera(cameraMgr, activeCameraId.id.c_str(), getDeviceListener(),
@@ -84,16 +83,13 @@ void AndroidCameraServer::startPreview() {
         ImageFormat view = {frameWidth, frameHeight, frameFormat};
         imageStreamCallbackImpl = new ImageStreamCallbackImpl(&frameTaskMap, previewCallback, frameRotation);
         imageDataReader = new AndroidImageReader(view, imageStreamCallbackImpl);
-        LOGI("startPreview:width = %d, height = %d, format = %d, rotation = %d, fps = %d",
+        LOGI("startPreview:width = %d, height = %d, format = %d, rotation = %d",
              frameWidth,
              frameHeight,
              frameFormat,
-             frameRotation,
-             frameFps);
+             frameRotation);
         setUIPreviewEnable(true);
-        createSession(imageDataReader->getNativeWindow(),
-                      frameRotation,
-                      new int32_t[2]{frameFps, frameFps});
+        createSession(imageDataReader->getNativeWindow(), frameRotation);
     }
     reTriggerRepeatingRequest();
 }
@@ -139,7 +135,7 @@ void AndroidCameraServer::selectCameraId(int32_t facing) {
     ACameraManager_deleteCameraIdList(cameraIds);
 }
 
-void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_t imageRotation, int32_t *fpsRange) {
+void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_t imageRotation) {
     LOGI("Create session");
     CALL_CONTAINER(create(&outputContainer))
     ANativeWindow *uiPreviewWindow = nullptr;
@@ -183,7 +179,7 @@ void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_
 //    ACaptureRequest_setEntry_i32(requests[IMAGE_STREAM_IDX].aRequest,
 //                                 ACAMERA_CONTROL_AE_TARGET_FPS_RANGE,
 //                                 2,
-//                                 fpsRange);
+//                                 new int32_t[]{30, 30});
 //    if (nullptr != uiPreviewWindow) {
 //        ACaptureRequest_setEntry_i32(requests[UI_PREVIEW_IDX].aRequest,
 //                                     ACAMERA_CONTROL_AE_TARGET_FPS_RANGE,
@@ -198,10 +194,6 @@ void AndroidCameraServer::setFrameSize(int32_t _frameWidth, int32_t _frameHeight
 
 void AndroidCameraServer::setFrameRotation(int32_t _frameRotation) {
     captureRequestSetEntryI32(ACAMERA_JPEG_ORIENTATION, 1, &_frameRotation);
-}
-
-void AndroidCameraServer::setFrameFps(int32_t _frameFps) {
-    captureRequestSetEntryI32(ACAMERA_CONTROL_AE_TARGET_FPS_RANGE, 2, new int32_t[2]{_frameFps, _frameFps});
 }
 
 void AndroidCameraServer::reTriggerRepeatingRequest() {
