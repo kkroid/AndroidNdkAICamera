@@ -23,7 +23,6 @@
 #include <string>
 #include <ctpl_stl.h>
 #include "UltraFaceTask.h"
-#include "CameraServerConfig.h"
 #include "GenderAgeDemo.h"
 #include "Config.h"
 #include <UIPreview.h>
@@ -31,7 +30,7 @@
 
 using namespace std;
 
-CameraManager *cameraEngine;
+CameraManager *cameraManager;
 
 class DemoTask : public FrameTask {
 public:
@@ -65,26 +64,22 @@ char *jstringToChar(JNIEnv *env, jstring jstr) {
 extern "C" JNIEXPORT void JNICALL
 Java_com_kk_afdd_MainActivity_openCamera(JNIEnv *env, jobject thiz, jint w, jint h, jint r, jint fps, jboolean
 mirror, jstring path) {
-    if (!cameraEngine) {
-        CameraServerConfigBuilder *builder = CameraServerConfigBuilder::newBuilder();
-        builder->frameWidth(w)
-                ->frameHeight(h)
-                ->frameRotation(r)
-                ->setCameraId(mirror ? 0 : 1)
-                ->frameFormat(AIMAGE_FORMAT_YUV_420_888)
-//                ->addFrameTask(new UltraFaceTask(fps,
-//                                                 Config::previewWidth,
-//                                                 Config::previewHeight,
-//                                                 2,
-//                                                 0.7f))
-                ->addFrameTask(new CVTask(fps, jstringToChar(env, path)));
-        CameraServerConfig *config = builder->build();
-        cameraEngine = CameraManager::getInstance();
-        cameraEngine->init(config);
+    if (!cameraManager) {
+        cameraManager = CameraManager::getInstance();
+        cameraManager->frameWidth = w;
+        cameraManager->frameHeight = h;
+        cameraManager->frameRotation = r;
+        cameraManager->cameraId = mirror ? 0 : 1;
+//        FrameTask *ultraFaceTask = new UltraFaceTask(fps,
+//                                                     Config::previewWidth,
+//                                                     Config::previewHeight,
+//                                                     2,
+//                                                     0.7f);
+//        cameraManager->addFrameTask(ultraFaceTask);
+        FrameTask *cvTask = new CVTask(fps, jstringToChar(env, path));
+        cameraManager->addFrameTask(cvTask);
     }
-    cameraEngine->startPreview();
-//    FaceRecognition *faceRecognition = new FaceRecognition();
-//    faceRecognition->getFeatureYuv();
+    cameraManager->startPreview();
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -99,25 +94,25 @@ Java_com_kk_afdd_MainActivity_setFaceOverlay(JNIEnv *env, jobject thiz, jobject 
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_kk_afdd_MainActivity_addTask(JNIEnv *env, jobject thiz, jstring name, jint fps) {
-    if (cameraEngine) {
+    if (cameraManager) {
         char *taskName = jstringToChar(env, name);
-        cameraEngine->addFrameTask(new DemoTask(taskName, fps));
+        cameraManager->addFrameTask(new DemoTask(taskName, fps));
     }
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_kk_afdd_MainActivity_removeTask(JNIEnv *env, jobject thiz, jstring name) {
-    if (cameraEngine) {
+    if (cameraManager) {
         char *taskName = jstringToChar(env, name);
-        cameraEngine->removeFrameTask(taskName);
+        cameraManager->removeFrameTask(taskName);
     }
 }
 
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_kk_afdd_MainActivity_closeCamera(JNIEnv *env, jobject thiz) {
-    if (cameraEngine) {
-        cameraEngine->stopPreview();
+    if (cameraManager) {
+        cameraManager->stopPreview();
     }
-    cameraEngine = nullptr;
+    cameraManager = nullptr;
 }

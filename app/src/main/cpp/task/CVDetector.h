@@ -78,6 +78,9 @@ public:
     }
 
     ~CVDetector() {
+        if (detectorAgregator) {
+            delete detectorAgregator;
+        }
     }
 
     void create(string path) {

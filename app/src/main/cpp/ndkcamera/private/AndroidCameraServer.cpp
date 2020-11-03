@@ -188,14 +188,6 @@ void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_
 //    }
 }
 
-void AndroidCameraServer::setFrameSize(int32_t _frameWidth, int32_t _frameHeight) {
-    // TODO
-}
-
-void AndroidCameraServer::setFrameRotation(int32_t _frameRotation) {
-    captureRequestSetEntryI32(ACAMERA_JPEG_ORIENTATION, 1, &_frameRotation);
-}
-
 void AndroidCameraServer::reTriggerRepeatingRequest() {
     ACaptureRequest *captureRequests[] = {requests[UI_PREVIEW_IDX].aRequest, requests[IMAGE_STREAM_IDX].aRequest};
     CALL_SESSION(setRepeatingRequest(captureSession,

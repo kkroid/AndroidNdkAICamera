@@ -78,7 +78,6 @@ private:
     ImageStreamCallbackImpl *imageStreamCallbackImpl = nullptr;
 
     bool uiPreviewEnable = false;
-    struct android_app *app;
 
 public:
     AndroidCameraServer(int32_t frameWidth,
@@ -92,10 +91,6 @@ public:
     void startPreview() override;
 
     void stopPreview() override;
-
-    void setFrameSize(int32_t _frameWidth, int32_t _frameHeight) override;
-
-    void setFrameRotation(int32_t _frameRotation) override;
 
     void setUIPreviewEnable(bool enable) {
         uiPreviewEnable = enable;

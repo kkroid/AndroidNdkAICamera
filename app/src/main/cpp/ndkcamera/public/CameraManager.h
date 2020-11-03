@@ -22,27 +22,24 @@
 #include <thread>
 
 #include "FrameProcesser.h"
-#include "CameraServerConfig.h"
 #include <native_debug.h>
 #include "ICameraServer.h"
+#include <media/NdkImage.h>
 
 /**
  * basic CameraAppEngine
  */
 class CameraManager : public PreviewCallback {
 public:
+    int32_t frameWidth = 240;
+    int32_t frameHeight = 320;
+    int32_t frameRotation = 90;
+    int32_t frameFormat = AIMAGE_FORMAT_YUV_420_888;
+    int32_t cameraId = 0;
+
     static CameraManager *getInstance() {
         static CameraManager instance;
         return &instance;
-    }
-
-    void init(CameraServerConfig *configuration) {
-        setFrameSize(configuration->getWidth(), configuration->getHeight());
-        setFrameFormat(configuration->getFormat());
-        setFrameRotation(configuration->getRotation());
-        setFrameTasks(configuration->getFrameTasks());
-        setCameraId(configuration->getCameraId());
-        frameProcessor = new FrameProcessor(&frameTaskMap);
     }
 
     ~CameraManager();
@@ -50,35 +47,6 @@ public:
     void startPreview();
 
     void stopPreview();
-
-    void setFrameSize(int32_t _frameWidth, int32_t _frameHeight) {
-        frameWidth = _frameWidth;
-        frameHeight = _frameHeight;
-        if (cameraReady) {
-            cameraServer->setFrameSize(_frameWidth, _frameHeight);
-        }
-    }
-
-    void setFrameRotation(int32_t _frameRotation) {
-        frameRotation = _frameRotation;
-        if (cameraReady) {
-            cameraServer->setFrameRotation(_frameRotation);
-        }
-    }
-
-    void setFrameFormat(int32_t _frameFormat) {
-        frameFormat = _frameFormat;
-//        cameraServer->setFrameFormat(_frameFormat);
-    }
-
-    void setCameraId(int _cameraId) {
-        cameraId = _cameraId;
-    }
-
-    void setFrameTasks(const std::map<std::string, FrameTask *> &_frameTaskMap) {
-        frameTaskMap = _frameTaskMap;
-        LOGI("Added %ld tasks", (long) frameTaskMap.size());
-    }
 
     void addFrameTask(FrameTask *_frameTask) {
         frameTaskMap[_frameTask->name] = _frameTask;
@@ -100,13 +68,8 @@ public:
     void onFrameAvailable(Frame *frame) override;
 
 private:
-    int32_t frameWidth = 480;
-    int32_t frameHeight = 640;
-    int32_t frameRotation = 270;
-    int32_t frameFormat = 0;
-    int32_t cameraId = 0;
     std::map<std::string, FrameTask *> frameTaskMap;
-    FrameProcessor *frameProcessor;
+    FrameProcessor *frameProcessor = new FrameProcessor(&frameTaskMap);
 
     volatile bool cameraReady;
     CameraServer *cameraServer;

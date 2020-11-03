@@ -38,19 +38,29 @@ public:
     }
 
     void onFaceDetected(std::string faceJson) {
-        const std::lock_guard<std::mutex> lock(g_i_mutex);
-        previewJvm->AttachCurrentThread(&env, nullptr);
-        if (nullptr == onFaceClass || nullptr == setFaceInfoListId) {
-            onFaceClass = env->GetObjectClass(faceListener);
-            setFaceInfoListId = env->GetMethodID(onFaceClass, "setFaceInfoList", "(Ljava/lang/String;)V");
+        JNIEnv *currentEnv;
+        int getEnvStat = previewJvm->GetEnv((void **) &currentEnv, JNI_VERSION_1_6);
+        if (getEnvStat == JNI_EDETACHED) {
+            if (previewJvm->AttachCurrentThread(&currentEnv, NULL) != 0) {
+                std::cout << "Failed to attach" << std::endl;
+            }
         }
-        jstring jmsg = env->NewStringUTF(faceJson.c_str());
-        env->CallVoidMethod(faceListener, setFaceInfoListId, jmsg);
-        env->DeleteLocalRef(jmsg);
+        jstring jmsg = currentEnv->NewStringUTF(faceJson.c_str());
+        currentEnv->CallVoidMethod(faceListener, setFaceInfoListId, jmsg);
+        currentEnv->DeleteLocalRef(jmsg);
+        if (currentEnv->ExceptionCheck()) {
+            currentEnv->ExceptionDescribe();
+        }
+        previewJvm->DetachCurrentThread();
     }
 
     void setFaceListener(jobject listener) {
         faceListener = env->NewGlobalRef(listener);
+
+        if (nullptr == onFaceClass || nullptr == setFaceInfoListId) {
+            onFaceClass = env->GetObjectClass(faceListener);
+            setFaceInfoListId = env->GetMethodID(onFaceClass, "setFaceInfoList", "(Ljava/lang/String;)V");
+        }
     }
 
 private:

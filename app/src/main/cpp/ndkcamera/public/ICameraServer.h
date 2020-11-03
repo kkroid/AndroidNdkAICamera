@@ -6,10 +6,10 @@
 
 class CameraServer {
 public:
-    int32_t frameWidth = 480;
-    int32_t frameHeight = 640;
-    int32_t frameRotation = 270;
     int32_t frameFormat = 0;
+    int32_t frameWidth = 240;
+    int32_t frameHeight = 320;
+    int32_t frameRotation = 90;
 
     PreviewCallback *previewCallback = nullptr;
     std::map<std::string, FrameTask *> frameTaskMap;
@@ -33,16 +33,6 @@ public:
     virtual void setPreviewCallback(PreviewCallback *callback) {
         previewCallback = callback;
     };
-
-    /**
-     * 设置预览帧大小
-     */
-    virtual void setFrameSize(int32_t _frameWidth, int32_t _frameHeight) = 0;
-
-    /**
-     * 设置摄像头角度
-     */
-    virtual void setFrameRotation(int32_t _frameRotation) = 0;
 
     virtual void setFrameTask(std::map<std::string, FrameTask *> _frameTaskMap) {
         frameTaskMap = _frameTaskMap;

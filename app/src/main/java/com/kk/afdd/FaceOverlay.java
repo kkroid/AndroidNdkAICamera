@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,14 +23,15 @@ public class FaceOverlay extends View {
 
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
-    private Gson mGson;
-    private List<FaceInfo> mFaceInfoList = Collections.synchronizedList(new ArrayList<>());
-    private Paint mFacePaint;
-    private Paint mTextPaint;
+    private final Gson mGson;
+    private final List<FaceInfo> mFaceInfoList = Collections.synchronizedList(new ArrayList<>());
+    private final Paint mFacePaint;
+    private final Paint mTextPaint;
     private float mScale;
     private boolean mMirror;
     private float mWidth = 0;
     private final Object lock = new Object();
+    private static Type sFaceInfoType;
 
     public FaceOverlay(Context context) {
         this(context, null);
@@ -59,6 +61,7 @@ public class FaceOverlay extends View {
         mTextPaint.setTextSize(42);
 
         mGson = new Gson();
+        mMirror = Config.MIRROR;
     }
 
     public void setMirror(boolean mirror) {
@@ -74,11 +77,14 @@ public class FaceOverlay extends View {
 
     public void setFaceInfoList(String faceInfoJson) {
         synchronized (lock) {
-            List<FaceInfo> faceInfoList = mGson.fromJson(faceInfoJson, new TypeToken<List<FaceInfo>>() {
-            }.getType());
+            if (null == sFaceInfoType) {
+                sFaceInfoType = new TypeToken<List<FaceInfo>>() {
+                }.getType();
+            }
+            List<FaceInfo> faceInfoList = mGson.fromJson(faceInfoJson, sFaceInfoType);
             mFaceInfoList.clear();
             mFaceInfoList.addAll(faceInfoList);
-            invalidate();
+            postInvalidate();
         }
     }
 

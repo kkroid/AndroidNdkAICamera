@@ -42,7 +42,6 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
         mPreviewView.setAspectRatio(Config.PREVIEW_WIDTH, Config.PREVIEW_HEIGHT);
         mFaceOverlay = findViewById(R.id.face_overlay);
         mFaceOverlay.setAspectRatio(Config.PREVIEW_WIDTH, Config.PREVIEW_HEIGHT);
-        mFaceOverlay.setMirror(Config.MIRROR);
     }
 
     @Override
@@ -74,7 +73,7 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
                             String path = response.data + File.separator +
                                     "haarcascades" + File.separator +
                                     "haarcascade_frontalface_alt.xml";
-                            Timber.d("module path:" + path);
+                            Timber.d("module path:%s", path);
                             setSurface(new Surface(surface));
                             setFaceOverlay(mFaceOverlay);
                             openCamera(Config.PREVIEW_WIDTH,

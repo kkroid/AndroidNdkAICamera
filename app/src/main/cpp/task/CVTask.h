@@ -39,7 +39,6 @@ private:
 public:
 
     CVTask(int fps, std::string path) : FrameTask(move("CVTask"), fps) {
-//            std::string path = "/sdcard/lbpcascades/lbpcascade_frontalface_improved.xml";
         cvDetector.create(path);
     }
 
@@ -62,7 +61,7 @@ public:
             Rect rect = rectFaces[i];
             string facejson = string_format("{\"score\":%f,\"x1\":%d,\"y1\":%d,\"x2\":%d,\"y2\":%d,\"gender\":%s,"
                                             "\"age\":%d}",
-                                            1.f/*weights[i]*/,
+                                            1.f,
                                             rect.x,
                                             rect.y,
                                             rect.x + rect.width,
