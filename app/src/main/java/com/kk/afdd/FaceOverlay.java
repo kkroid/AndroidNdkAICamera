@@ -17,7 +17,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 public class FaceOverlay extends View {
 
@@ -72,7 +71,7 @@ public class FaceOverlay extends View {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         mWidth = right - left;
-        mScale = mWidth / mRatioWidth;
+        mScale = mWidth / Config.PREVIEW_WIDTH;
     }
 
     public void setFaceInfoList(String faceInfoJson) {
@@ -123,14 +122,10 @@ public class FaceOverlay extends View {
                     offset(rectF, mWidth);
                 }
                 canvas.drawRect(rectF, mFacePaint);
-                if (faceInfo.age > 0) {
-                    canvas.drawText(String.format(Locale.getDefault(), "Gender:%s, Age:%d", faceInfo.gender ?
-                                    "Female" : "Male",
-                            faceInfo.age),
-                            rectF.left + 4,
-                            rectF.centerY(),
-                            mTextPaint);
-                }
+                canvas.drawText("unknown",
+                        rectF.left + 4,
+                        rectF.centerY(),
+                        mTextPaint);
             }
         }
     }

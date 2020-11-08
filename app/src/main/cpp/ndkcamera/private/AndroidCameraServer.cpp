@@ -112,14 +112,25 @@ void AndroidCameraServer::selectCameraId(int32_t facing) {
         const uint32_t *tags = nullptr;
         ACameraMetadata_getAllTags(metadataObj, &count, &tags);
         for (int tagIdx = 0; tagIdx < count; ++tagIdx) {
+            if (ACAMERA_SCALER_AVAILABLE_STREAM_CONFIGURATIONS == tags[tagIdx]) {
+                ACameraMetadata_const_entry entry;
+                ACameraMetadata_getConstEntry(metadataObj, ACAMERA_SCALER_AVAILABLE_STREAM_CONFIGURATIONS, &entry);
+                for (int k = 0; k < entry.count; k += 4) {
+                    int32_t input = entry.data.i32[k + 3];
+                    int32_t format = entry.data.i32[k + 0];
+                    if (input) continue;
+                    LOGI("supported size for format %d : width = %d, height = %d",
+                         format,
+                         entry.data.i32[k + 1],
+                         entry.data.i32[k + 2]);
+                }
+            }
             if (ACAMERA_LENS_FACING == tags[tagIdx]) {
                 ACameraMetadata_const_entry lensInfo = {
                         0,
                 };
                 CALL_METADATA(getConstEntry(metadataObj, tags[tagIdx], &lensInfo))
-                int cid = static_cast<acamera_metadata_enum_android_lens_facing_t>(
-                        lensInfo.data.u8[0]);
-                if (cid == facing) {
+                if (std::strcmp(id, std::to_string(facing).c_str()) == 0) {
                     CameraId cam(id);
                     cam.facing = static_cast<acamera_metadata_enum_android_lens_facing_t>(
                             lensInfo.data.u8[0]);
@@ -140,8 +151,11 @@ void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_
     CALL_CONTAINER(create(&outputContainer))
     ANativeWindow *uiPreviewWindow = nullptr;
     if (uiPreviewEnable) {
-        LOGI("uiPreviewEnable:%d", uiPreviewEnable);
         uiPreviewWindow = UIPreview::getInstance()->getNativeWindow();
+        LOGI("uiPreviewEnable width:%d, height:%d, format:%d",
+             ANativeWindow_getWidth(uiPreviewWindow),
+             ANativeWindow_getHeight(uiPreviewWindow),
+             ANativeWindow_getFormat(uiPreviewWindow));
     }
     requests[UI_PREVIEW_IDX].outputNativeWindow = uiPreviewWindow;
     requests[UI_PREVIEW_IDX].requestTemplate = TEMPLATE_PREVIEW;
@@ -152,7 +166,8 @@ void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_
     uint8_t afMode = ACAMERA_CONTROL_AF_MODE_CONTINUOUS_PICTURE;
     uint8_t awbMode = ACAMERA_CONTROL_AWB_MODE_AUTO;
     for (auto &req : requests) {
-        if (!req.outputNativeWindow) {
+        if (nullptr == req.outputNativeWindow) {
+            LOGI("Ignore a window");
             continue;
         }
         ANativeWindow_acquire(req.outputNativeWindow);
@@ -180,7 +195,7 @@ void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_
 //                                 ACAMERA_CONTROL_AE_TARGET_FPS_RANGE,
 //                                 2,
 //                                 new int32_t[]{30, 30});
-//    if (nullptr != uiPreviewWindow) {
+//    if (uiPreviewEnable) {
 //        ACaptureRequest_setEntry_i32(requests[UI_PREVIEW_IDX].aRequest,
 //                                     ACAMERA_CONTROL_AE_TARGET_FPS_RANGE,
 //                                     2,
@@ -189,7 +204,7 @@ void AndroidCameraServer::createSession(ANativeWindow *imageStreamWindow, int32_
 }
 
 void AndroidCameraServer::reTriggerRepeatingRequest() {
-    ACaptureRequest *captureRequests[] = {requests[UI_PREVIEW_IDX].aRequest, requests[IMAGE_STREAM_IDX].aRequest};
+    ACaptureRequest *captureRequests[] = {requests[IMAGE_STREAM_IDX].aRequest, requests[UI_PREVIEW_IDX].aRequest};
     CALL_SESSION(setRepeatingRequest(captureSession,
                                      nullptr,
                                      CAPTURE_REQUEST_COUNT,
@@ -199,8 +214,8 @@ void AndroidCameraServer::reTriggerRepeatingRequest() {
 }
 
 void AndroidCameraServer::captureRequestSetEntryI32(uint32_t tag, uint32_t count, const int32_t *data) {
-     CALL_REQUEST(setEntry_i32(requests[UI_PREVIEW_IDX].aRequest, tag, count, data))
-     CALL_REQUEST(setEntry_i32(requests[IMAGE_STREAM_IDX].aRequest, tag, count, data))
+    CALL_REQUEST(setEntry_i32(requests[UI_PREVIEW_IDX].aRequest, tag, count, data))
+    CALL_REQUEST(setEntry_i32(requests[IMAGE_STREAM_IDX].aRequest, tag, count, data))
 //    for (int i = 0; i < CAPTURE_REQUEST_COUNT; ++i) {
 //        ACaptureRequest *req = captureRequests[i];
 //        CALL_REQUEST(setEntry_i32(req, tag, count, data))
@@ -209,8 +224,8 @@ void AndroidCameraServer::captureRequestSetEntryI32(uint32_t tag, uint32_t count
 }
 
 void AndroidCameraServer::captureRequestSetEntryU8(uint32_t tag, uint32_t count, const uint8_t *data) {
-     CALL_REQUEST(setEntry_u8(requests[UI_PREVIEW_IDX].aRequest, tag, count, data))
-     CALL_REQUEST(setEntry_u8(requests[IMAGE_STREAM_IDX].aRequest, tag, count, data))
+    CALL_REQUEST(setEntry_u8(requests[UI_PREVIEW_IDX].aRequest, tag, count, data))
+    CALL_REQUEST(setEntry_u8(requests[IMAGE_STREAM_IDX].aRequest, tag, count, data))
 //    for (int i = 0; i < CAPTURE_REQUEST_COUNT; ++i) {
 //        ACaptureRequest *req = captureRequests[i];
 //        CALL_REQUEST(setEntry_u8(req, tag, count, data))
@@ -219,8 +234,8 @@ void AndroidCameraServer::captureRequestSetEntryU8(uint32_t tag, uint32_t count,
 }
 
 void AndroidCameraServer::captureRequestSetEntryI64(uint32_t tag, uint32_t count, const int64_t *data) {
-     CALL_REQUEST(setEntry_i64(requests[UI_PREVIEW_IDX].aRequest, tag, count, data))
-     CALL_REQUEST(setEntry_i64(requests[IMAGE_STREAM_IDX].aRequest, tag, count, data))
+    CALL_REQUEST(setEntry_i64(requests[UI_PREVIEW_IDX].aRequest, tag, count, data))
+    CALL_REQUEST(setEntry_i64(requests[IMAGE_STREAM_IDX].aRequest, tag, count, data))
 //    for (int i = 0; i < CAPTURE_REQUEST_COUNT; ++i) {
 //        ACaptureRequest *req = captureRequests[i];
 //        CALL_REQUEST(setEntry_i64(req, tag, count, data))

@@ -24,7 +24,6 @@
 #include <ctpl_stl.h>
 #include "UltraFaceTask.h"
 #include "GenderAgeDemo.h"
-#include "Config.h"
 #include <UIPreview.h>
 #include <CVTask.h>
 
@@ -69,7 +68,7 @@ mirror, jstring path) {
         cameraManager->frameWidth = w;
         cameraManager->frameHeight = h;
         cameraManager->frameRotation = r;
-        cameraManager->cameraId = mirror ? 0 : 1;
+        cameraManager->cameraId = mirror ? 1 : 0;
 //        FrameTask *ultraFaceTask = new UltraFaceTask(fps,
 //                                                     Config::previewWidth,
 //                                                     Config::previewHeight,

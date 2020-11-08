@@ -8,12 +8,19 @@
 #include "FrameTask.h"
 #include "CVDetector.h"
 #include "Frame.h"
+#include <opencv2/core.hpp>
+#include <opencv2/objdetect.hpp>
+
+
+using namespace std;
+using namespace cv;
 
 class CVTask : public FrameTask {
 
 private:
 
     CVDetector cvDetector;
+//    Ptr<CascadeDetectorAdapter> detector;
 
     static string string_format(const string fmt, ...) {
         int size = ((int) fmt.size()) * 2 + 50;   // Use a rubric appropriate for your code
@@ -38,23 +45,27 @@ private:
 
 public:
 
-    CVTask(int fps, std::string path) : FrameTask(move("CVTask"), fps) {
+    CVTask(int fps, string path) : FrameTask(move("CVTask"), fps) {
         cvDetector.create(path);
+//        detector = makePtr<CascadeDetectorAdapter>(makePtr<CascadeClassifier>(path));
+//        detector->setMinObjectSize(Size(20, 20));
     }
 
     ~CVTask() {
         cvDetector.destroy();
+//        delete detector;
     }
 
     void doTask(Frame *frame) {
         long start = TimeUtil::now();
-        cv::Mat yuvImg, brgImg;
+        Mat yuvImg, brgImg;
         yuvImg.create(frame->height * 3 / 2, frame->width, CV_8UC1);
         memcpy(yuvImg.data, frame->data, frame->len);
-        cv::cvtColor(yuvImg, brgImg, cv::COLOR_YUV2GRAY_I420);
+        cvtColor(yuvImg, brgImg, COLOR_YUV2GRAY_I420);
 
         vector<Rect> rectFaces;
         cvDetector.detect(brgImg, &rectFaces);
+//        detector->detect(brgImg, rectFaces);
 
         string json = "[";
         for (int i = 0, n = rectFaces.size(); i < n; i++) {
@@ -78,7 +89,10 @@ public:
         long end = TimeUtil::now();
         delete frame;
         UIPreview::getInstance()->onFaceDetected(json);
-        LOGI("CVTask loadFaceInfo done, duration:%ld, found %d faces", end - start, rectFaces.size());
+        int faceCount = rectFaces.size();
+        if (faceCount > 0) {
+            LOGI("CVTask loadFaceInfo done, duration:%ld, found %d faces", end - start, faceCount);
+        }
         rectFaces.clear();
         rectFaces.resize(0);
     }
