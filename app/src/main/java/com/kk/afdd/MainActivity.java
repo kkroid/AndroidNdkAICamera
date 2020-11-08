@@ -11,15 +11,19 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.tbruyelle.rxpermissions3.RxPermissions;
 
 import java.io.File;
+import java.lang.reflect.Type;
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import timber.log.Timber;
 
-public class MainActivity extends BaseActivity implements TextureView.SurfaceTextureListener {
+public class MainActivity extends BaseActivity implements TextureView.SurfaceTextureListener, FaceListener {
 
     static {
         System.loadLibrary("ndk_camera");
@@ -31,10 +35,11 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
 
     native void setSurface(Surface surface);
 
-    native void setFaceOverlay(FaceOverlay faceOverlay);
+    native void setFaceListener(FaceListener faceListener);
 
     NDKPreviewView mPreviewView;
     FaceOverlay mFaceOverlay;
+    private Gson mGson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +54,7 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
         }
 
         mFaceOverlay = findViewById(R.id.face_overlay);
+        mGson = new Gson();
     }
 
     @Override
@@ -86,11 +92,11 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
                         .observeOnMainThread()
                         .callback(response -> {
                             String path = response.data + File.separator +
-                                    "haarcascades" + File.separator +
-                                    "haarcascade_frontalface_default.xml";
+                                    "lbpcascades" + File.separator +
+                                    "lbpcascade_frontalface.xml";
                             Timber.d("module path:%s", path);
                             setSurface(new Surface(surface));
-                            setFaceOverlay(mFaceOverlay);
+                            setFaceListener(this);
                             openCamera(Config.PREVIEW_WIDTH,
                                     Config.PREVIEW_HEIGHT,
                                     Config.ROTATION,
@@ -102,6 +108,7 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
         });
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void resizeTextureView(int textureWidth) {
         int rotation = Config.ROTATION / 90;
         int newHeight;
@@ -173,5 +180,20 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
     @Override
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
 
+    }
+
+    private static Type sFaceInfoType;
+    private final Object lock = new Object();
+
+    @Override
+    public void onFaceDetected(String faceInfoJson) {
+        synchronized (lock) {
+            if (null == sFaceInfoType) {
+                sFaceInfoType = new TypeToken<List<FaceInfo>>() {
+                }.getType();
+            }
+            List<FaceInfo> faceInfoList = mGson.fromJson(faceInfoJson, sFaceInfoType);
+            mFaceOverlay.setFaceInfoList(faceInfoList);
+        }
     }
 }

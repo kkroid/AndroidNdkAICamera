@@ -59,7 +59,7 @@ public:
 
         if (nullptr == onFaceClass || nullptr == setFaceInfoListId) {
             onFaceClass = env->GetObjectClass(faceListener);
-            setFaceInfoListId = env->GetMethodID(onFaceClass, "setFaceInfoList", "(Ljava/lang/String;)V");
+            setFaceInfoListId = env->GetMethodID(onFaceClass, "onFaceDetected", "(Ljava/lang/String;)V");
         }
     }
 
@@ -70,8 +70,6 @@ private:
     JavaVM *previewJvm = nullptr;
     jclass onFaceClass;
     jmethodID setFaceInfoListId;
-
-    std::mutex g_i_mutex;
 
     UIPreview() = default;
 };

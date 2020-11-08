@@ -10,10 +10,6 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,15 +18,12 @@ public class FaceOverlay extends View {
 
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
-    private final Gson mGson;
     private final List<FaceInfo> mFaceInfoList = Collections.synchronizedList(new ArrayList<>());
     private final Paint mFacePaint;
     private final Paint mTextPaint;
     private float mScale;
     private boolean mMirror;
     private float mWidth = 0;
-    private final Object lock = new Object();
-    private static Type sFaceInfoType;
 
     public FaceOverlay(Context context) {
         this(context, null);
@@ -59,7 +52,6 @@ public class FaceOverlay extends View {
         mTextPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         mTextPaint.setTextSize(42);
 
-        mGson = new Gson();
         mMirror = Config.MIRROR;
     }
 
@@ -74,17 +66,10 @@ public class FaceOverlay extends View {
         mScale = mWidth / Config.PREVIEW_WIDTH;
     }
 
-    public void setFaceInfoList(String faceInfoJson) {
-        synchronized (lock) {
-            if (null == sFaceInfoType) {
-                sFaceInfoType = new TypeToken<List<FaceInfo>>() {
-                }.getType();
-            }
-            List<FaceInfo> faceInfoList = mGson.fromJson(faceInfoJson, sFaceInfoType);
-            mFaceInfoList.clear();
-            mFaceInfoList.addAll(faceInfoList);
-            postInvalidate();
-        }
+    public void setFaceInfoList(List<FaceInfo> faceInfoJson) {
+        mFaceInfoList.clear();
+        mFaceInfoList.addAll(faceInfoJson);
+        postInvalidate();
     }
 
     /**
@@ -107,26 +92,24 @@ public class FaceOverlay extends View {
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
-        synchronized (lock) {
-            // draw faces
-            for (FaceInfo faceInfo : mFaceInfoList) {
-                RectF rectF = new RectF(faceInfo.x1, faceInfo.y1, faceInfo.x2, faceInfo.y2);
-                if (mMirror) {
-                    // 镜像
-                    mirror(rectF);
-                }
-                // 缩放
-                scale(rectF, mScale);
-                if (mMirror) {
-                    // 平移
-                    offset(rectF, mWidth);
-                }
-                canvas.drawRect(rectF, mFacePaint);
-                canvas.drawText("unknown",
-                        rectF.left + 4,
-                        rectF.centerY(),
-                        mTextPaint);
+        // draw faces
+        for (FaceInfo faceInfo : mFaceInfoList) {
+            RectF rectF = new RectF(faceInfo.x1, faceInfo.y1, faceInfo.x2, faceInfo.y2);
+            if (mMirror) {
+                // 镜像
+                mirror(rectF);
             }
+            // 缩放
+            scale(rectF, mScale);
+            if (mMirror) {
+                // 平移
+                offset(rectF, mWidth);
+            }
+            canvas.drawRect(rectF, mFacePaint);
+            canvas.drawText("unknown",
+                    rectF.left + 4,
+                    rectF.centerY(),
+                    mTextPaint);
         }
     }
 

@@ -87,8 +87,8 @@ Java_com_kk_afdd_MainActivity_setSurface(JNIEnv *env, jobject thiz, jobject surf
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_kk_afdd_MainActivity_setFaceOverlay(JNIEnv *env, jobject thiz, jobject faceOverlay) {
-    UIPreview::getInstance()->setFaceListener(faceOverlay);
+Java_com_kk_afdd_MainActivity_setFaceListener(JNIEnv *env, jobject thiz, jobject faceListener) {
+    UIPreview::getInstance()->setFaceListener(faceListener);
 }
 
 extern "C" JNIEXPORT void JNICALL

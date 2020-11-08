@@ -22,7 +22,7 @@ public:
             detector(detector) {
         LOGD("CascadeDetectorAdapter::Detect::Detect");
         CV_Assert(detector);
-        scaleFactor = 1.3f;
+//        scaleFactor = 1.3f;
     }
 
     void detect(const Mat &Image,

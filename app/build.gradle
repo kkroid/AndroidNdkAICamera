@@ -4,7 +4,7 @@ android {
         applicationId "com.kk.afdd"
 
         ndk {
-            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
         }
         externalNativeBuild {
             cmake {
@@ -23,12 +23,11 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
     implementation 'io.reactivex.rxjava3:rxjava:3.0.4'
     implementation 'com.github.tbruyelle:rxpermissions:0.12'
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.github.qingmei2:rximagepicker:2.5.4'
-//    implementation project(":opencv")
+    implementation 'org.tensorflow:tensorflow-lite:2.3.0'
 }
