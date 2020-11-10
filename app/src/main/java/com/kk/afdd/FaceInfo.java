@@ -10,4 +10,5 @@ public class FaceInfo implements Serializable {
     public float y2;
     public float score;
     public List<Float> feature;
+    public String name = "unknown";
 }

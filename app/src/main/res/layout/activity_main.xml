@@ -17,7 +17,23 @@
         <com.kk.afdd.FaceOverlay
             android:id="@+id/face_overlay"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
     </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/button_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/register"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            android:layout_alignParentStart="true"
+            android:contentDescription="@null"
+            android:src="@android:drawable/ic_menu_add" />
+
+    </RelativeLayout>
 
 </RelativeLayout>

@@ -90,10 +90,11 @@ public:
 
                 for (int fi = 0, fn = recognizer->feature_dim; fi < fn; fi++) {
                     featureJson.append(string_format("%f", feature[fi]));
-                    if (i != fn - 1) {
+                    if (fi != fn - 1) {
                         featureJson.append(",");
                     }
                 }
+                // LOGI("face:%s", featureJson.c_str());
             }
             featureJson.append("]");
             string facejson = string_format("{\"score\":%f,\"x1\":%d,\"y1\":%d,\"x2\":%d,\"y2\":%d,\"feature\":%s}",
@@ -104,7 +105,7 @@ public:
                                             rect.y + rect.height,
                                             featureJson.c_str());
             json.append(facejson);
-            LOGI("face:%s", facejson.c_str());
+            // LOGI("face:%s", facejson.c_str());
             if (i != n - 1) {
                 json.append(",");
             }
@@ -119,6 +120,13 @@ public:
         }
         rectFaces.clear();
         rectFaces.resize(0);
+    }
+
+    float calculateSimilar(const float *feature1, const float *feature2) {
+        if (recognizer) {
+            return recognizer->calculateSimilar(feature1, feature2);
+        }
+        return 0;
     }
 };
 

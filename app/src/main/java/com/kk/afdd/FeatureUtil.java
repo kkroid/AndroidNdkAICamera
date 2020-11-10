@@ -1,6 +1,7 @@
 package com.kk.afdd;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class FeatureUtil {
     public static String featureToString(float[] feature) {
@@ -21,5 +22,14 @@ public class FeatureUtil {
             storeFeatureFloat[i] = Float.parseFloat(f);
         }
         return storeFeatureFloat;
+    }
+
+    public static float[] getPrimitiveArray(List<Float> feature) {
+        float[] featureArray = new float[feature.size()];
+        for (int i = 0, n = feature.size(); i < n; i++) {
+            Float f = feature.get(i);
+            featureArray[i] = f == null ? 0 : f;
+        }
+        return featureArray;
     }
 }

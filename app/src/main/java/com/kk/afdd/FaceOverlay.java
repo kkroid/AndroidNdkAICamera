@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -89,45 +90,43 @@ public class FaceOverlay extends View {
         requestLayout();
     }
 
+    private String currentFaceName;
+
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
         // draw faces
         for (FaceInfo faceInfo : mFaceInfoList) {
             RectF rectF = new RectF(faceInfo.x1, faceInfo.y1, faceInfo.x2, faceInfo.y2);
-            if (mMirror) {
-                // 镜像
-                mirror(rectF);
-            }
-            // 缩放
-            scale(rectF, mScale);
-            if (mMirror) {
-                // 平移
-                offset(rectF, mWidth);
-            }
+            transform(rectF, mMirror, mScale, mWidth);
             canvas.drawRect(rectF, mFacePaint);
-            canvas.drawText("unknown",
-                    rectF.left + 4,
-                    rectF.centerY(),
-                    mTextPaint);
+            String name = faceInfo.name;
+            if (!TextUtils.isEmpty(name) && !"unknown".equals(name)) {
+                currentFaceName = name + " " + faceInfo.score;
+                canvas.drawText(currentFaceName,
+                        rectF.left + 4,
+                        rectF.centerY(),
+                        mTextPaint);
+            }
         }
     }
 
-    private void mirror(RectF rectF) {
-        float tmp = -rectF.left;
-        rectF.left = -rectF.right;
-        rectF.right = tmp;
-    }
-
-    private void offset(RectF rectF, float offset) {
-        rectF.offset(offset, 0);
-    }
-
-    private void scale(RectF rectF, float scale) {
+    public static void transform(RectF rectF, boolean mirror, float scale, float offset) {
+        if (mirror) {
+            // 镜像
+            float tmp = -rectF.left;
+            rectF.left = -rectF.right;
+            rectF.right = tmp;
+        }
+        // 缩放
         rectF.left = rectF.left * scale;
         rectF.top = rectF.top * scale;
         rectF.right = rectF.right * scale;
         rectF.bottom = rectF.bottom * scale;
+        if (mirror) {
+            // 平移
+            rectF.offset(offset, 0);
+        }
     }
 
     @Override

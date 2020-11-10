@@ -1,13 +1,19 @@
 package com.kk.afdd;
 
 import android.Manifest;
+import android.app.Dialog;
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.TextureView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
@@ -37,14 +43,22 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
 
     native void setFaceListener(FaceListener faceListener);
 
-    NDKPreviewView mPreviewView;
-    FaceOverlay mFaceOverlay;
+    native float calculateSimilar(float[] feature1, float[] feature2);
+
+    private static Type sFaceInfoType;
+    private NDKPreviewView mPreviewView;
+    private FaceOverlay mFaceOverlay;
     private Gson mGson;
+    private boolean mPreviewStarted = false;
+    private final Object lock = new Object();
+    private FaceInfo mCurrentFaceInfo;
+    private List<User> mUserList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mGson = new Gson();
         mPreviewView = findViewById(R.id.preview_view);
         mPreviewView.setSurfaceTextureListener(this);
         if (mPreviewView.isAvailable()) {
@@ -54,17 +68,43 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
         }
 
         mFaceOverlay = findViewById(R.id.face_overlay);
-        mGson = new Gson();
+        ImageView addButton = findViewById(R.id.register);
+        addButton.setOnClickListener(v -> {
+            if (null == mCurrentFaceInfo
+                    || null == mCurrentFaceInfo.feature
+                    || mCurrentFaceInfo.feature.isEmpty()) {
+                Timber.i("No face found : %s", (mCurrentFaceInfo.feature.size()));
+                return;
+            }
+            FaceInfo registerFace = mCurrentFaceInfo;
+            Rect rect = new Rect((int) registerFace.x1,
+                    (int) registerFace.y1,
+                    (int) registerFace.x2,
+                    (int) registerFace.y2);
+            Bitmap bitmap = mPreviewView.getFaceBitmap(rect);
+            Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog);
+            dialog.setContentView(R.layout.item_register);
+            ImageView faceView = dialog.findViewById(R.id.face);
+            faceView.setImageBitmap(bitmap);
+            EditText nameView = dialog.findViewById(R.id.name);
+            Button okBtn = dialog.findViewById(R.id.ok);
+            okBtn.setOnClickListener(v1 -> {
+                String name = nameView.getText().toString();
+                Timber.d("Name:%s", name);
+                float[] featureArray = FeatureUtil.getPrimitiveArray(registerFace.feature);
+                String feature = FeatureUtil.featureToString(featureArray);
+                User user = new User();
+                user.feature = feature;
+                user.name = name;
+                App.getInstance().boxStore.boxFor(User.class).put(user);
+                mUserList = App.getInstance().boxStore.boxFor(User.class).getAll();
+                dialog.dismiss();
+            });
+            dialog.show();
+        });
     }
 
-    @Override
-    protected void onDestroy() {
-        closeCamera();
-        super.onDestroy();
-    }
-
-    private boolean mPreviewStarted = false;
-
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
         Timber.d("surface width = %d, height = %d", width, height);
@@ -78,6 +118,8 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
                 }
                 mPreviewStarted = true;
                 RxRequestWrapper.with(Observable.create((ObservableOnSubscribe<BaseResponse<String>>) emitter -> {
+                    mUserList = App.getInstance().boxStore.boxFor(User.class).getAll();
+                    Timber.i("%d user loaded", mUserList.size());
                     File moduleFolder = new File(MainActivity.this.getFilesDir(), "modules");
                     if (!moduleFolder.exists()) {
                         FileUtils.copyAssetsToDst(MainActivity.this,
@@ -108,7 +150,6 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
         });
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void resizeTextureView(int textureWidth) {
         int rotation = Config.ROTATION / 90;
         int newHeight;
@@ -169,7 +210,6 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
 
     @Override
     public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
-
     }
 
     @Override
@@ -179,11 +219,13 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
 
     @Override
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
-
     }
 
-    private static Type sFaceInfoType;
-    private final Object lock = new Object();
+    @Override
+    protected void onDestroy() {
+        closeCamera();
+        super.onDestroy();
+    }
 
     @Override
     public void onFaceDetected(String faceInfoJson) {
@@ -193,6 +235,36 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
                 }.getType();
             }
             List<FaceInfo> faceInfoList = mGson.fromJson(faceInfoJson, sFaceInfoType);
+            if (faceInfoList.size() > 0) {
+                for (FaceInfo faceInfo : faceInfoList) {
+                    if (null == faceInfo.feature || faceInfo.feature.isEmpty()) {
+                        continue;
+                    }
+                    // String ff = FeatureUtil.featureToString(FeatureUtil.getPrimitiveArray(faceInfo.feature));
+                    // int maxLogSize = 1000;
+                    // for(int i = 0; i <= ff.length() / maxLogSize; i++) {
+                    //     int start = i * maxLogSize;
+                    //     int end = (i+1) * maxLogSize;
+                    //     end = Math.min(end, ff.length());
+                    //     Timber.v(ff.substring(start, end));
+                    // }
+                    mCurrentFaceInfo = faceInfoList.get(0);
+                    long start = System.currentTimeMillis();
+                    for (User user : mUserList) {
+                        float score = calculateSimilar(FeatureUtil.readFeature(user.feature),
+                                FeatureUtil.getPrimitiveArray(faceInfo.feature));
+                        if (score > 0.6f) {
+                            faceInfo.score = score;
+                            faceInfo.name = user.name;
+                            Timber.d("calculateSimilar recognized cost %dms, %s, score:%f",
+                                    (System.currentTimeMillis() - start),
+                                    user.name,
+                                    score);
+                            break;
+                        }
+                    }
+                }
+            }
             mFaceOverlay.setFaceInfoList(faceInfoList);
         }
     }

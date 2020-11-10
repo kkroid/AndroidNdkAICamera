@@ -65,6 +65,10 @@ public:
         }
     }
 
+    FrameTask *getFrameTask(std::string name) {
+        return frameTaskMap[name];
+    }
+
     void onFrameAvailable(Frame *frame) override;
 
 private:

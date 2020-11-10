@@ -115,3 +115,17 @@ Java_com_kk_afdd_MainActivity_closeCamera(JNIEnv *env, jobject thiz) {
     }
     cameraManager = nullptr;
 }
+
+extern "C"
+JNIEXPORT jfloat JNICALL
+Java_com_kk_afdd_MainActivity_calculateSimilar(JNIEnv *env, jobject thiz, jfloatArray feature1, jfloatArray feature2) {
+    if (cameraManager) {
+        FrameTask *task = cameraManager->getFrameTask("CVTask");
+        if (nullptr != task) {
+            auto* featureData1 = (jfloat*)env->GetFloatArrayElements(feature1, nullptr);
+            auto* featureData2 = (jfloat*)env->GetFloatArrayElements(feature2, nullptr);
+            return ((CVTask *)task)->calculateSimilar(featureData1, featureData2);
+        }
+    }
+    return 0;
+}

@@ -58,6 +58,16 @@ public:
         return runNet(img);
     }
 
+    float calculateSimilar(const float *feature1, const float *feature2) {
+        float ret = 0.0, mod1 = 0.0, mod2 = 0.0;
+        for (std::vector<float>::size_type i = 0; i != feature_dim; ++i) {
+            ret += feature1[i] * feature2[i];
+            mod1 += feature1[i] * feature1[i];
+            mod2 += feature2[i] * feature2[i];
+        }
+        return (ret / sqrt(mod1) / sqrt(mod2) + 1) / 2.0f;
+    }
+
 private:
     ncnn::Net recognizeNet;
 
@@ -78,16 +88,6 @@ private:
             feature[j] = out[j];
         }
         return feature;
-    }
-
-    double calculSimilar(const float *feature1, const float *feature2) {
-        double ret = 0.0, mod1 = 0.0, mod2 = 0.0;
-        for (std::vector<double>::size_type i = 0; i != feature_dim; ++i) {
-            ret += feature1[i] * feature2[i];
-            mod1 += feature1[i] * feature1[i];
-            mod2 += feature2[i] * feature2[i];
-        }
-        return (ret / sqrt(mod1) / sqrt(mod2) + 1) / 2.0;
     }
 };
 
