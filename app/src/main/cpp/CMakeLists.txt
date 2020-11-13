@@ -48,6 +48,7 @@ include_directories(${NDK_CAMERA}/public
         ${THRID_PARTY}/opencv
         ${THRID_PARTY}/libyuv
         ${THRID_PARTY}/ultra
+        ${THRID_PARTY}/dlib
         )
 
 # now build app's shared lib
@@ -86,6 +87,10 @@ set_target_properties(yuv PROPERTIES IMPORTED_LOCATION ${Libs}/${ANDROID_ABI}/li
 add_library(opencv SHARED IMPORTED)
 set_target_properties(opencv PROPERTIES IMPORTED_LOCATION ${Libs}/${ANDROID_ABI}/libopencv_java4.so)
 
+#DLIB
+add_library(dlib SHARED IMPORTED)
+set_target_properties(dlib PROPERTIES IMPORTED_LOCATION ${Libs}/${ANDROID_ABI}/libdlib.so)
+
 # add lib dependencies
 target_link_libraries(ndk_camera
         android
@@ -94,6 +99,7 @@ target_link_libraries(ndk_camera
         mediandk
         yuv
         opencv
+        dlib
         ncnn
         glslang
         OGLCompiler

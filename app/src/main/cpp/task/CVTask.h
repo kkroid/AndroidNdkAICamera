@@ -10,7 +10,8 @@
 #include "Frame.h"
 #include <opencv2/core.hpp>
 #include <opencv2/objdetect.hpp>
-#include "mobile_facenet.h"
+#include <dlib/opencv/cv_image.h>
+#include "DLibRecognizer.h"
 
 using namespace std;
 using namespace cv;
@@ -21,7 +22,8 @@ private:
 
     CVDetector cvDetector;
 //    Ptr<CascadeDetectorAdapter> detector;
-    FaceRecognize *recognizer = new FaceRecognize();
+//    FaceRecognize *recognizer = new FaceRecognize();
+    DLibRecognizer *recognizer = new DLibRecognizer();
     long lastRecTime = 0;
 
     static string string_format(const string fmt, ...) {
@@ -51,10 +53,10 @@ public:
         cvDetector.create(path);
 //        detector = makePtr<CascadeDetectorAdapter>(makePtr<CascadeClassifier>(path));
 //        detector->setMinObjectSize(Size(20, 20));
-        recognizer->setThreadNum(4);
-        recognizer->init("/data/user/0/com.kk.afdd/files/modules/mobilefacenet.bin",
-                         "/data/user/0/com.kk.afdd/files/modules/mobilefacenet.param",
-                         false);
+//        recognizer->setThreadNum(4);
+//        recognizer->init("/data/user/0/com.kk.afdd/files/modules/mobilefacenet.bin",
+//                         "/data/user/0/com.kk.afdd/files/modules/mobilefacenet.param",
+//                         false);
     }
 
     ~CVTask() {
@@ -70,7 +72,7 @@ public:
         memcpy(yuvImg.data, frame->data, frame->len);
         cvtColor(yuvImg, brgImg, COLOR_YUV2GRAY_I420);
 
-        vector<Rect> rectFaces;
+        std::vector<Rect> rectFaces;
         cvDetector.detect(brgImg, &rectFaces);
 //        detector->detect(brgImg, rectFaces);
 
@@ -78,17 +80,15 @@ public:
         for (int i = 0, n = rectFaces.size(); i < n; i++) {
             Rect rect = rectFaces[i];
             string featureJson = "[";
-            if (i == 0 && (start - lastRecTime > 1000)) {
+            if (i == 0 && (start - lastRecTime > 5000)) {
                 lastRecTime = start;
                 Mat *croppedFace = new Mat(brgImg, rect);
-                ncnn::Mat ncnnFace = ncnn::Mat::from_pixels(croppedFace->data,
-                                                            ncnn::Mat::PIXEL_BGR2RGB,
-                                                            croppedFace->cols,
-                                                            croppedFace->rows);
-                float *feature = recognizer->getFeature(ncnnFace);
+                Mat rgbFace, resizedRgbFace;
+                cvtColor(*croppedFace, rgbFace, COLOR_BGR2RGB);
+                resize(rgbFace, resizedRgbFace, Size(150, 150), 0, 0, INTER_AREA);
+                float *feature = recognizer->getFeature(resizedRgbFace);
                 delete croppedFace;
-
-                for (int fi = 0, fn = recognizer->feature_dim; fi < fn; fi++) {
+                for (int fi = 0, fn = 128; fi < fn; fi++) {
                     featureJson.append(string_format("%f", feature[fi]));
                     if (fi != fn - 1) {
                         featureJson.append(",");
@@ -122,7 +122,7 @@ public:
         rectFaces.resize(0);
     }
 
-    float calculateSimilar(const float *feature1, const float *feature2) {
+    float calculateSimilar(float *feature1, float *feature2) {
         if (recognizer) {
             return recognizer->calculateSimilar(feature1, feature2);
         }
