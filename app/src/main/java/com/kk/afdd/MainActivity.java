@@ -234,20 +234,21 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
                 sFaceInfoType = new TypeToken<List<FaceInfo>>() {
                 }.getType();
             }
+            String ff = faceInfoJson;
+            int maxLogSize = 1000;
+            for(int i = 0; i <= ff.length() / maxLogSize; i++) {
+                int start = i * maxLogSize;
+                int end = (i+1) * maxLogSize;
+                end = Math.min(end, ff.length());
+                Timber.v(ff.substring(start, end));
+            }
+            faceInfoJson = faceInfoJson.replaceAll("nan", "0").replaceAll("inf", "0");
             List<FaceInfo> faceInfoList = mGson.fromJson(faceInfoJson, sFaceInfoType);
             if (faceInfoList.size() > 0) {
                 for (FaceInfo faceInfo : faceInfoList) {
                     if (null == faceInfo.feature || faceInfo.feature.isEmpty()) {
                         continue;
                     }
-                    // String ff = FeatureUtil.featureToString(FeatureUtil.getPrimitiveArray(faceInfo.feature));
-                    // int maxLogSize = 1000;
-                    // for(int i = 0; i <= ff.length() / maxLogSize; i++) {
-                    //     int start = i * maxLogSize;
-                    //     int end = (i+1) * maxLogSize;
-                    //     end = Math.min(end, ff.length());
-                    //     Timber.v(ff.substring(start, end));
-                    // }
                     mCurrentFaceInfo = faceInfoList.get(0);
                     long start = System.currentTimeMillis();
                     for (User user : mUserList) {
