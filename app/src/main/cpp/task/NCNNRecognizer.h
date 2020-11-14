@@ -24,24 +24,20 @@ public:
     }
 
     float *getFeature(cv::Mat croppedFace) {
-        ncnn::Extractor ex = recognizer.create_extractor();
-        ex.set_num_threads(1);
-        ex.set_light_mode(true);
-        ncnn::Mat ncnnFace = ncnn::Mat::from_pixels(croppedFace.data,
+        ncnn::Mat ncnnFace = ncnn::Mat::from_pixels_resize(croppedFace.data,
                                                     ncnn::Mat::PIXEL_BGR2RGB,
                                                     croppedFace.cols,
-                                                    croppedFace.rows);
+                                                    croppedFace.rows,
+                                                    112,
+                                                    112);
+        ncnn::Extractor ex = recognizer.create_extractor();
+        // x.set_num_threads(4);
         ex.input("data", ncnnFace);
         ncnn::Mat out;
         ex.extract("fc1", out);
         float *feature = new float[128];
         for (int j = 0; j < 128; j++) {
-            // TODO not working ?
-            if (std::isnan(out[j]) || std::isinf(out[j])) {
-                feature[j] = 0;
-            } else {
-                feature[j] = out[j];
-            }
+            feature[j] = out[j];
         }
         return feature;
     }
