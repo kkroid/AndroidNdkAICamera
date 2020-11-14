@@ -22,7 +22,29 @@
 
  #实体类不参与混淆
 -keep class com.kk.afdd.FaceInfo { *; }
+-keep class com.kk.afdd.User { *; }
 -keep class * implements android.os.Parcelable {
   public static final android.os.Parcelable$Creator *;
 }
 -keepnames class * implements java.io.Serializable
+-keepattributes Signature
+-keep class **.R$* {*;}
+-ignorewarnings
+-keepclassmembers class **.R$* {
+    public static <fields>;
+}
+
+-keepattributes *Annotation*
+
+-keepclasseswithmembernames class * { # 保持native方法不被混淆
+    native <methods>;
+}
+
+-keep public class * extends android.app.Activity
+
+-keep class * {
+    public void onFaceDetected(java.lang.String);
+}
+
+
+
