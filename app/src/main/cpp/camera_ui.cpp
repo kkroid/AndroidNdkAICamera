@@ -22,8 +22,6 @@
 #include <media/NdkImage.h>
 #include <string>
 #include <ctpl_stl.h>
-#include "UltraFaceTask.h"
-#include "GenderAgeDemo.h"
 #include <UIPreview.h>
 #include <CVTask.h>
 
@@ -69,12 +67,6 @@ mirror, jstring path) {
         cameraManager->frameHeight = h;
         cameraManager->frameRotation = r;
         cameraManager->cameraId = mirror ? 1 : 0;
-//        FrameTask *ultraFaceTask = new UltraFaceTask(fps,
-//                                                     Config::previewWidth,
-//                                                     Config::previewHeight,
-//                                                     2,
-//                                                     0.7f);
-//        cameraManager->addFrameTask(ultraFaceTask);
         FrameTask *cvTask = new CVTask(fps, jstringToChar(env, path));
         cameraManager->addFrameTask(cvTask);
     }
@@ -122,9 +114,9 @@ Java_com_kk_afdd_MainActivity_calculateSimilar(JNIEnv *env, jobject thiz, jfloat
     if (cameraManager) {
         FrameTask *task = cameraManager->getFrameTask("CVTask");
         if (nullptr != task) {
-            auto* featureData1 = (jfloat*)env->GetFloatArrayElements(feature1, nullptr);
-            auto* featureData2 = (jfloat*)env->GetFloatArrayElements(feature2, nullptr);
-            return ((CVTask *)task)->calculateSimilar(featureData1, featureData2);
+            auto *featureData1 = (jfloat *) env->GetFloatArrayElements(feature1, nullptr);
+            auto *featureData2 = (jfloat *) env->GetFloatArrayElements(feature2, nullptr);
+            return ((CVTask *) task)->calculateSimilar(featureData1, featureData2);
         }
     }
     return 0;

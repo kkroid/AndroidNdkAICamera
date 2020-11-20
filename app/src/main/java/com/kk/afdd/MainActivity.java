@@ -73,7 +73,7 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
             if (null == mCurrentFaceInfo
                     || null == mCurrentFaceInfo.feature
                     || mCurrentFaceInfo.feature.isEmpty()) {
-                Timber.i("No face found : %s", (mCurrentFaceInfo.feature.size()));
+                Timber.i("No face found");
                 return;
             }
             FaceInfo registerFace = mCurrentFaceInfo;
@@ -134,7 +134,6 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
                         .observeOnMainThread()
                         .callback(response -> {
                             String path = response.data + File.separator +
-                                    "lbpcascades" + File.separator +
                                     "lbpcascade_frontalface.xml";
                             Timber.d("module path:%s", path);
                             setSurface(new Surface(surface));
@@ -150,6 +149,7 @@ public class MainActivity extends BaseActivity implements TextureView.SurfaceTex
         });
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void resizeTextureView(int textureWidth) {
         int rotation = Config.ROTATION / 90;
         int newHeight;

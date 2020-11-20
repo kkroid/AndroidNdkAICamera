@@ -4,7 +4,6 @@
 #include <jni.h>
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
-#include <UltraFace.hpp>
 
 class UIPreview {
 public:
@@ -42,7 +41,7 @@ public:
         int getEnvStat = previewJvm->GetEnv((void **) &currentEnv, JNI_VERSION_1_6);
         if (getEnvStat == JNI_EDETACHED) {
             if (previewJvm->AttachCurrentThread(&currentEnv, NULL) != 0) {
-                std::cout << "Failed to attach" << std::endl;
+                LOGW("Failed to attach");
             }
         }
         jstring jmsg = currentEnv->NewStringUTF(faceJson.c_str());

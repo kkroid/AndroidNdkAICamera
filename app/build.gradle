@@ -29,5 +29,4 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.github.qingmei2:rximagepicker:2.5.4'
-    implementation 'org.tensorflow:tensorflow-lite:2.3.0'
 }

@@ -10,9 +10,7 @@
 #include "Frame.h"
 #include <opencv2/core.hpp>
 #include <opencv2/objdetect.hpp>
-#include <dlib/opencv/cv_image.h>
-#include "mobile_facenet.h"
-#include "DLibRecognizer.h"
+#include <opencv2/imgproc.hpp>
 #include "NCNNRecognizer.h"
 
 using namespace std;
